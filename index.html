@@ -1,0 +1,3542 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Untitled</title>
+    <link rel="stylesheet" href="./style.css">
+
+  </head>
+    
+  <body>
+  ```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORIVOX — Give Intelligence a Voice</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg-primary: #030308;
+    --bg-secondary: #07070f;
+    --bg-card: rgba(255,255,255,0.03);
+    --neon-purple: #8b5cf6;
+    --neon-blue: #3b82f6;
+    --neon-cyan: #06b6d4;
+    --neon-magenta: #d946ef;
+    --neon-indigo: #6366f1;
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255,255,255,0.65);
+    --text-muted: rgba(255,255,255,0.35);
+    --border: rgba(255,255,255,0.08);
+    --border-glow: rgba(139,92,246,0.3);
+    --glass: rgba(255,255,255,0.04);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; font-size: 16px; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* CUSTOM CURSOR */
+  .cursor {
+    position: fixed;
+    width: 12px;
+    height: 12px;
+    background: var(--neon-purple);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 99999;
+    transition: transform 0.1s ease;
+    box-shadow: 0 0 20px var(--neon-purple), 0 0 40px rgba(139,92,246,0.4);
+  }
+
+  .cursor-follower {
+    position: fixed;
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(139,92,246,0.5);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 99998;
+    transition: all 0.15s ease;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.3;
+  }
+
+  /* ANIMATED BG */
+  .bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .bg-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.12;
+    animation: orbFloat 20s ease-in-out infinite;
+  }
+
+  .bg-orb:nth-child(1) {
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, var(--neon-purple), transparent);
+    top: -200px; left: -100px;
+    animation-delay: 0s;
+  }
+
+  .bg-orb:nth-child(2) {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, var(--neon-blue), transparent);
+    top: 30%; right: -150px;
+    animation-delay: -7s;
+  }
+
+  .bg-orb:nth-child(3) {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, var(--neon-magenta), transparent);
+    bottom: 10%; left: 20%;
+    animation-delay: -14s;
+  }
+
+  .bg-orb:nth-child(4) {
+    width: 350px; height: 350px;
+    background: radial-gradient(circle, var(--neon-cyan), transparent);
+    top: 60%; right: 30%;
+    animation-delay: -3s;
+  }
+
+  @keyframes orbFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -40px) scale(1.05); }
+    66% { transform: translate(-20px, 20px) scale(0.95); }
+  }
+
+  /* GRID LINES */
+  .grid-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(139,92,246,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(139,92,246,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  /* PAGES */
+  .page {
+    display: none;
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+  }
+
+  .page.active { display: block; }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 0 2rem;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.4s ease;
+  }
+
+  nav.scrolled {
+    background: rgba(3,3,8,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 0 40px rgba(139,92,246,0.08);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    position: relative;
+  }
+
+  .logo-text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #ffffff, rgba(139,92,246,0.9));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.5rem 0.875rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+  }
+
+  .nav-links a:hover {
+    color: var(--text-primary);
+    background: rgba(255,255,255,0.05);
+  }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .btn-ghost:hover {
+    border-color: rgba(139,92,246,0.4);
+    color: white;
+    background: rgba(139,92,246,0.08);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-indigo));
+    border: none;
+    color: white;
+    padding: 0.55rem 1.4rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(139,92,246,0.3);
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .btn-primary:hover::before { opacity: 1; }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 35px rgba(139,92,246,0.5), 0 8px 25px rgba(139,92,246,0.25);
+  }
+
+  /* ==================== HOME PAGE ==================== */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    padding: 100px 2rem 60px;
+  }
+
+  .hero-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+  }
+
+  .hero-left { position: relative; z-index: 2; }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(139,92,246,0.12);
+    border: 1px solid rgba(139,92,246,0.3);
+    padding: 0.4rem 1rem;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--neon-purple);
+    margin-bottom: 2rem;
+    animation: fadeSlideUp 0.8s ease forwards;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .badge-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--neon-purple);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(139,92,246,0.4); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(139,92,246,0); }
+  }
+
+  .hero-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(3rem, 5vw, 5.5rem);
+    font-weight: 700;
+    line-height: 1.0;
+    letter-spacing: -0.04em;
+    margin-bottom: 1.5rem;
+    animation: fadeSlideUp 0.8s 0.2s ease forwards;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .hero-title .line-1 { display: block; color: white; }
+  .hero-title .line-2 {
+    display: block;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    max-width: 480px;
+    margin-bottom: 2.5rem;
+    animation: fadeSlideUp 0.8s 0.4s ease forwards;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .hero-ctas {
+    display: flex;
+    gap: 1rem;
+    animation: fadeSlideUp 0.8s 0.6s ease forwards;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .btn-hero-primary {
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-indigo));
+    border: none;
+    color: white;
+    padding: 0.875rem 2rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 0 0 30px rgba(139,92,246,0.35);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-hero-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent, rgba(255,255,255,0.1));
+    opacity: 0;
+    transition: 0.3s;
+  }
+
+  .btn-hero-primary:hover::after { opacity: 1; }
+  .btn-hero-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 50px rgba(139,92,246,0.55), 0 15px 35px rgba(139,92,246,0.3);
+  }
+
+  .btn-hero-secondary {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    color: white;
+    padding: 0.875rem 2rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    backdrop-filter: blur(10px);
+  }
+
+  .btn-hero-secondary:hover {
+    border-color: rgba(139,92,246,0.4);
+    background: rgba(139,92,246,0.08);
+    transform: translateY(-2px);
+  }
+
+  .play-icon {
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* HERO RIGHT — FLOATING DASHBOARD */
+  .hero-right {
+    position: relative;
+    animation: fadeSlideUp 1s 0.3s ease forwards;
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  .hero-mockup {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    margin-left: auto;
+  }
+
+  .mockup-main {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 1.5rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 25px 80px rgba(0,0,0,0.5), 0 0 60px rgba(139,92,246,0.08), inset 0 1px 0 rgba(255,255,255,0.1);
+    animation: floatY 6s ease-in-out infinite;
+  }
+
+  @keyframes floatY {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+  }
+
+  .mockup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+  }
+
+  .mockup-dots { display: flex; gap: 6px; }
+  .mockup-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .mockup-dot:nth-child(1) { background: #ff5f57; }
+  .mockup-dot:nth-child(2) { background: #febc2e; }
+  .mockup-dot:nth-child(3) { background: #28c840; }
+
+  .mockup-title {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .mockup-textarea {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    min-height: 90px;
+    position: relative;
+  }
+
+  .mockup-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 16px;
+    background: var(--neon-purple);
+    animation: blink 1s step-end infinite;
+    vertical-align: middle;
+    margin-left: 2px;
+  }
+
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+  .mockup-row {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .mockup-select {
+    flex: 1;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.6rem 0.875rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .select-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+  }
+
+  .waveform-container {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .wave-bars {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex: 1;
+    height: 40px;
+  }
+
+  .wave-bar {
+    flex: 1;
+    border-radius: 2px;
+    background: linear-gradient(to top, var(--neon-purple), var(--neon-cyan));
+    animation: waveAnim 1.2s ease-in-out infinite;
+  }
+
+  @keyframes waveAnim {
+    0%, 100% { transform: scaleY(0.3); }
+    50% { transform: scaleY(1); }
+  }
+
+  .wave-bar:nth-child(1) { animation-delay: 0s; }
+  .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+  .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+  .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+  .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+  .wave-bar:nth-child(6) { animation-delay: 0.5s; }
+  .wave-bar:nth-child(7) { animation-delay: 0.3s; }
+  .wave-bar:nth-child(8) { animation-delay: 0.1s; }
+  .wave-bar:nth-child(9) { animation-delay: 0.4s; }
+  .wave-bar:nth-child(10) { animation-delay: 0.2s; }
+  .wave-bar:nth-child(11) { animation-delay: 0s; }
+  .wave-bar:nth-child(12) { animation-delay: 0.35s; }
+  .wave-bar:nth-child(13) { animation-delay: 0.15s; }
+  .wave-bar:nth-child(14) { animation-delay: 0.45s; }
+  .wave-bar:nth-child(15) { animation-delay: 0.25s; }
+  .wave-bar:nth-child(16) { animation-delay: 0.05s; }
+  .wave-bar:nth-child(17) { animation-delay: 0.4s; }
+  .wave-bar:nth-child(18) { animation-delay: 0.2s; }
+  .wave-bar:nth-child(19) { animation-delay: 0.1s; }
+  .wave-bar:nth-child(20) { animation-delay: 0.3s; }
+
+  .play-btn {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 20px rgba(139,92,246,0.4);
+    flex-shrink: 0;
+  }
+
+  .play-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 35px rgba(139,92,246,0.6);
+  }
+
+  .generate-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-indigo));
+    border: none;
+    color: white;
+    padding: 0.875rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 0 0 25px rgba(139,92,246,0.3);
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .generate-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    animation: shimmer 2.5s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+
+  /* FLOATING MINI CARDS */
+  .float-card {
+    position: absolute;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 0.75rem 1rem;
+    backdrop-filter: blur(15px);
+    animation: floatY 5s ease-in-out infinite;
+  }
+
+  .float-card-1 {
+    top: -30px;
+    right: -40px;
+    animation-delay: -2s;
+  }
+
+  .float-card-2 {
+    bottom: 20px;
+    left: -50px;
+    animation-delay: -3s;
+  }
+
+  .float-card-tag {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-bottom: 0.3rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .float-card-val {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  /* STATS ROW */
+  .stats-row {
+    display: flex;
+    gap: 2rem;
+    margin-top: 3rem;
+    animation: fadeSlideUp 0.8s 0.8s ease forwards;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .stat-item { }
+
+  .stat-num {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, white, var(--neon-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* SECTION STYLES */
+  section {
+    padding: 100px 2rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--neon-purple);
+    margin-bottom: 1.25rem;
+  }
+
+  .section-label::before {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--neon-purple);
+  }
+
+  .section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2rem, 3.5vw, 3.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.25rem;
+  }
+
+  .section-sub {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    max-width: 560px;
+  }
+
+  /* FEATURE CARDS */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 4rem;
+  }
+
+  .feature-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    cursor: default;
+  }
+
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(139,92,246,0.05), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .feature-card:hover::before { opacity: 1; }
+
+  .feature-card:hover {
+    border-color: rgba(139,92,246,0.3);
+    transform: translateY(-6px);
+    box-shadow: 0 25px 60px rgba(139,92,246,0.12), 0 0 0 1px rgba(139,92,246,0.15);
+  }
+
+  .feature-icon {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(99,102,241,0.1));
+    border: 1px solid rgba(139,92,246,0.25);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
+  }
+
+  .feature-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+    color: white;
+  }
+
+  .feature-desc {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+
+  /* VOICE CARDS */
+  .voices-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 2.5rem;
+  }
+
+  .voice-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.25rem;
+    transition: all 0.35s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .voice-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--neon-purple), var(--neon-cyan));
+    opacity: 0;
+    transition: opacity 0.35s;
+  }
+
+  .voice-card:hover::before { opacity: 1; }
+
+  .voice-card:hover {
+    border-color: rgba(139,92,246,0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 50px rgba(139,92,246,0.1);
+  }
+
+  .voice-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    margin-bottom: 0.875rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    background: linear-gradient(135deg, rgba(139,92,246,0.3), rgba(59,130,246,0.3));
+    border: 1px solid rgba(139,92,246,0.2);
+  }
+
+  .voice-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .voice-meta {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-bottom: 0.875rem;
+  }
+
+  .mini-wave {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 24px;
+    margin-bottom: 0.875rem;
+  }
+
+  .mini-bar {
+    flex: 1;
+    border-radius: 1px;
+    background: linear-gradient(to top, rgba(139,92,246,0.4), rgba(6,182,212,0.4));
+    animation: waveAnim 1s ease-in-out infinite;
+  }
+
+  .voice-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .voice-tag {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 100px;
+    background: rgba(139,92,246,0.12);
+    border: 1px solid rgba(139,92,246,0.2);
+    color: var(--neon-purple);
+    font-weight: 500;
+  }
+
+  /* USE CASES */
+  .usecase-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .usecase-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2.5rem;
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+    transition: all 0.35s ease;
+    cursor: default;
+  }
+
+  .usecase-card:hover {
+    border-color: rgba(139,92,246,0.25);
+    background: rgba(139,92,246,0.04);
+    transform: translateY(-3px);
+  }
+
+  .usecase-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    background: rgba(139,92,246,0.1);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(139,92,246,0.2);
+  }
+
+  .usecase-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  .usecase-desc {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+
+  /* PRICING */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    margin-top: 3rem;
+  }
+
+  .pricing-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2rem 1.5rem;
+    position: relative;
+    transition: all 0.4s ease;
+    overflow: hidden;
+  }
+
+  .pricing-card.featured {
+    background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(99,102,241,0.06));
+    border-color: rgba(139,92,246,0.4);
+    box-shadow: 0 0 40px rgba(139,92,246,0.12), inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+
+  .pricing-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 25px 60px rgba(139,92,246,0.12);
+    border-color: rgba(139,92,246,0.3);
+  }
+
+  .pricing-badge {
+    position: absolute;
+    top: -1px;
+    right: 20px;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-indigo));
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 0 0 10px 10px;
+    letter-spacing: 0.05em;
+  }
+
+  .pricing-plan {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 0.875rem;
+  }
+
+  .pricing-price {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 0.25rem;
+  }
+
+  .pricing-price span {
+    font-size: 1.1rem;
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+
+  .pricing-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pricing-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .pricing-features li {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .pricing-features li::before {
+    content: '✓';
+    color: var(--neon-purple);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  /* TESTIMONIALS */
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-top: 3rem;
+  }
+
+  .testimonial-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.75rem;
+    transition: all 0.35s;
+  }
+
+  .testimonial-card:hover {
+    border-color: rgba(139,92,246,0.25);
+    transform: translateY(-3px);
+  }
+
+  .testimonial-stars {
+    color: #f59e0b;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    letter-spacing: 2px;
+  }
+
+  .testimonial-text {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin-bottom: 1.25rem;
+    font-style: italic;
+  }
+
+  .testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .author-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .author-name {
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+
+  .author-role {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  /* CTA SECTION */
+  .cta-section {
+    text-align: center;
+    padding: 120px 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cta-glow {
+    position: absolute;
+    width: 600px;
+    height: 300px;
+    background: radial-gradient(ellipse, rgba(139,92,246,0.15), transparent);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .cta-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    margin-bottom: 1.25rem;
+    position: relative;
+  }
+
+  .cta-sub {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 500px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.7;
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 0 2rem;
+  }
+
+  /* FOOTER */
+  footer {
+    padding: 60px 2rem 30px;
+    border-top: 1px solid var(--border);
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .footer-top {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    gap: 3rem;
+    margin-bottom: 3rem;
+  }
+
+  .footer-brand p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin-top: 1rem;
+    max-width: 240px;
+  }
+
+  .footer-col h4 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+  }
+
+  .footer-col ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .footer-col ul li a {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s;
+    cursor: pointer;
+  }
+
+  .footer-col ul li a:hover { color: white; }
+
+  .footer-bottom {
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-copy {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  /* ==================== VOICES PAGE ==================== */
+  .page-hero {
+    padding: 160px 2rem 80px;
+    text-align: center;
+    position: relative;
+  }
+
+  .search-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    max-width: 600px;
+    margin: 2rem auto 0;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0.875rem 1.25rem;
+    transition: border-color 0.3s;
+  }
+
+  .search-bar:focus-within {
+    border-color: rgba(139,92,246,0.4);
+    box-shadow: 0 0 25px rgba(139,92,246,0.1);
+  }
+
+  .search-bar input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 0.95rem;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .search-bar input::placeholder { color: var(--text-muted); }
+
+  .filter-strip {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+    justify-content: center;
+  }
+
+  .filter-pill {
+    padding: 0.5rem 1.25rem;
+    border-radius: 100px;
+    border: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.25s;
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .filter-pill:hover, .filter-pill.active {
+    background: rgba(139,92,246,0.12);
+    border-color: rgba(139,92,246,0.4);
+    color: var(--neon-purple);
+  }
+
+  .voices-big-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .voice-card-big {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 1.75rem;
+    transition: all 0.35s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .voice-card-big::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(139,92,246,0.06), transparent);
+    opacity: 0;
+    transition: opacity 0.35s;
+  }
+
+  .voice-card-big:hover::after { opacity: 1; }
+
+  .voice-card-big:hover {
+    border-color: rgba(139,92,246,0.35);
+    transform: translateY(-5px);
+    box-shadow: 0 20px 50px rgba(139,92,246,0.1);
+  }
+
+  .vcb-top {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .vcb-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(139,92,246,0.4), rgba(59,130,246,0.3));
+    border: 1px solid rgba(139,92,246,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .vcb-info {}
+
+  .vcb-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .vcb-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .vcb-wave {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 36px;
+    margin-bottom: 1rem;
+  }
+
+  .vcb-bar {
+    flex: 1;
+    border-radius: 2px;
+    background: linear-gradient(to top, rgba(139,92,246,0.5), rgba(6,182,212,0.5));
+    animation: waveAnim 1.2s ease-in-out infinite;
+  }
+
+  .vcb-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .vcb-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .vcb-play {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 0 15px rgba(139,92,246,0.3);
+    border: none;
+    flex-shrink: 0;
+  }
+
+  .vcb-play:hover {
+    transform: scale(1.15);
+    box-shadow: 0 0 30px rgba(139,92,246,0.5);
+  }
+
+  /* ==================== STUDIO PAGE ==================== */
+  .studio-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+
+  .studio-mockup {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+    padding: 1.75rem;
+    box-shadow: 0 30px 100px rgba(0,0,0,0.5), 0 0 80px rgba(139,92,246,0.07);
+  }
+
+  .studio-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .studio-title-text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  .studio-textarea {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    min-height: 100px;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    position: relative;
+  }
+
+  .studio-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .control-group {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem;
+  }
+
+  .control-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .control-select {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: white;
+    font-weight: 500;
+  }
+
+  .slider-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .slider-item {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem;
+  }
+
+  .slider-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
+  .slider-name {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .slider-val {
+    font-size: 0.78rem;
+    color: var(--neon-purple);
+    font-weight: 600;
+  }
+
+  .slider-track {
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    position: relative;
+    overflow: visible;
+  }
+
+  .slider-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--neon-purple), var(--neon-cyan));
+  }
+
+  .slider-thumb {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 14px;
+    height: 14px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(139,92,246,0.5);
+  }
+
+  .output-player {
+    background: rgba(139,92,246,0.06);
+    border: 1px solid rgba(139,92,246,0.2);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .output-info { flex: 1; }
+
+  .output-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+  }
+
+  .output-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* ==================== PRICING PAGE ==================== */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .toggle-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .toggle-switch {
+    width: 52px;
+    height: 28px;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-indigo));
+    border-radius: 100px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 0 15px rgba(139,92,246,0.3);
+  }
+
+  .toggle-knob {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+  }
+
+  .save-badge {
+    background: rgba(34,197,94,0.15);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: #22c55e;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-weight: 600;
+  }
+
+  /* ==================== ABOUT PAGE ==================== */
+  .about-hero {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    padding: 160px 2rem 80px;
+  }
+
+  .values-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .value-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2rem;
+    transition: all 0.35s;
+  }
+
+  .value-card:hover {
+    border-color: rgba(139,92,246,0.3);
+    transform: translateY(-4px);
+  }
+
+  /* API PAGE */
+  .code-block {
+    background: rgba(0,0,0,0.6);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+
+  .code-keyword { color: #d946ef; }
+  .code-string { color: #22d3ee; }
+  .code-func { color: #818cf8; }
+  .code-comment { color: rgba(255,255,255,0.3); }
+  .code-var { color: #a3e635; }
+
+  /* SCROLL ANIMATIONS */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+  .reveal-delay-5 { transition-delay: 0.5s; }
+
+  /* GRADIENT TEXT */
+  .gradient-text {
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-2 {
+    background: linear-gradient(135deg, var(--neon-magenta), var(--neon-purple), var(--neon-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* NEON LINE SEPARATOR */
+  .neon-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--neon-purple), transparent);
+    margin: 2rem 0;
+    opacity: 0.5;
+  }
+
+  /* LOGO SVG */
+  .logo-svg { width: 36px; height: 36px; }
+
+  /* ENTERPRISE BANNER */
+  .enterprise-banner {
+    background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(99,102,241,0.05));
+    border: 1px solid rgba(139,92,246,0.25);
+    border-radius: 24px;
+    padding: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-top: 4rem;
+  }
+
+  .enterprise-left h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .enterprise-left p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  /* LOGO PARTNERS */
+  .partners-row {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    padding: 2rem 0;
+    opacity: 0.4;
+    flex-wrap: wrap;
+  }
+
+  .partner-logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.02em;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeSlideUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  /* MOBILE NAV */
+  .nav-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    padding: 5px;
+  }
+
+  .nav-toggle span {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: white;
+    border-radius: 2px;
+    transition: all 0.3s;
+  }
+
+  /* PAGE TRANSITION */
+  .page-transition {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-primary);
+    z-index: 9000;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .page-transition.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* GLOW BORDER */
+  .glow-border {
+    position: relative;
+  }
+
+  .glow-border::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, var(--neon-purple), var(--neon-cyan), var(--neon-magenta));
+    z-index: -1;
+    opacity: 0.3;
+    filter: blur(1px);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 1024px) {
+    .features-grid { grid-template-columns: repeat(2, 1fr); }
+    .voices-grid { grid-template-columns: repeat(2, 1fr); }
+    .pricing-grid { grid-template-columns: repeat(2, 1fr); }
+    .voices-big-grid { grid-template-columns: repeat(2, 1fr); }
+    .footer-top { grid-template-columns: 1fr 1fr 1fr; gap: 2rem; }
+    .hero-content { grid-template-columns: 1fr; gap: 40px; }
+    .hero-right { display: none; }
+    .studio-layout { grid-template-columns: 1fr; }
+    .enterprise-banner { flex-direction: column; text-align: center; }
+  }
+
+  @media (max-width: 768px) {
+    .nav-links, .nav-actions { display: none; }
+    .nav-toggle { display: flex; }
+    .features-grid { grid-template-columns: 1fr; }
+    .voices-grid { grid-template-columns: 1fr; }
+    .usecase-grid { grid-template-columns: 1fr; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .testimonials-grid { grid-template-columns: 1fr; }
+    .voices-big-grid { grid-template-columns: 1fr; }
+    .values-grid { grid-template-columns: 1fr; }
+    .footer-top { grid-template-columns: 1fr; }
+    section { padding: 60px 1.25rem; }
+    .hero { padding: 100px 1.25rem 60px; }
+    .cursor, .cursor-follower { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-follower" id="cursorFollower"></div>
+
+<!-- PAGE TRANSITION -->
+<div class="page-transition" id="pageTransition"></div>
+
+<!-- BACKGROUND -->
+<div class="bg-canvas">
+  <div class="bg-orb"></div>
+  <div class="bg-orb"></div>
+  <div class="bg-orb"></div>
+  <div class="bg-orb"></div>
+</div>
+<div class="grid-overlay"></div>
+
+<!-- NAVIGATION -->
+<nav id="navbar">
+  <a class="logo" onclick="navigateTo('home')">
+    <svg class="logo-svg" viewBox="0 0 36 36" fill="none">
+      <circle cx="14" cy="14" r="13" stroke="url(#logoGrad)" stroke-width="1.5"/>
+      <ellipse cx="14" cy="14" rx="5" ry="5" fill="url(#logoGrad)" opacity="0.8"/>
+      <path d="M8 14 Q14 8 20 14" stroke="url(#logoGrad)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M6 14 Q14 6 22 14" stroke="url(#logoGrad2)" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/>
+      <circle cx="27" cy="20" r="6" fill="rgba(139,92,246,0.08)" stroke="url(#logoGrad)" stroke-width="1"/>
+      <path d="M24 20 L26 22 L30 18" stroke="#8b5cf6" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <defs>
+        <linearGradient id="logoGrad" x1="0" y1="0" x2="36" y2="36">
+          <stop stop-color="#8b5cf6"/>
+          <stop offset="1" stop-color="#06b6d4"/>
+        </linearGradient>
+        <linearGradient id="logoGrad2" x1="0" y1="0" x2="36" y2="36">
+          <stop stop-color="#d946ef"/>
+          <stop offset="1" stop-color="#3b82f6"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <span class="logo-text">ORIVOX</span>
+  </a>
+
+  <ul class="nav-links">
+    <li><a onclick="navigateTo('home')">Home</a></li>
+    <li><a onclick="navigateTo('voices')">Voices</a></li>
+    <li><a onclick="navigateTo('studio')">Studio</a></li>
+    <li><a onclick="navigateTo('usecases')">Use Cases</a></li>
+    <li><a onclick="navigateTo('pricing')">Pricing</a></li>
+    <li><a onclick="navigateTo('about')">About</a></li>
+    <li><a onclick="navigateTo('api')">API</a></li>
+  </ul>
+
+  <div class="nav-actions">
+    <button class="btn-ghost">Sign In</button>
+    <button class="btn-primary">Start Free</button>
+  </div>
+
+  <div class="nav-toggle" onclick="toggleMobileMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- ==================== PAGE: HOME ==================== -->
+<div class="page active" id="page-home">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-left">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          Now with Voice Cloning 2.0
+        </div>
+
+        <h1 class="hero-title">
+          <span class="line-1">Where Text</span>
+          <span class="line-2">Becomes Voice.</span>
+        </h1>
+
+        <p class="hero-sub">ORIVOX transforms words into lifelike AI speech with studio-quality realism, multilingual support, voice cloning, and expressive control — for creators, teams, and products.</p>
+
+        <div class="hero-ctas">
+          <button class="btn-hero-primary" onclick="navigateTo('studio')">Start Creating →</button>
+          <button class="btn-hero-secondary">
+            <span class="play-icon">
+              <svg width="12" height="14" viewBox="0 0 12 14" fill="none"><path d="M1 1L11 7L1 13V1Z" fill="white"/></svg>
+            </span>
+            Hear Demo
+          </button>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-item">
+            <div class="stat-num">120+</div>
+            <div class="stat-label">AI Voices</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num">29</div>
+            <div class="stat-label">Languages</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num">50K+</div>
+            <div class="stat-label">Creators</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="hero-mockup">
+          <!-- Float cards -->
+          <div class="float-card float-card-1">
+            <div class="float-card-tag">VOICE STATUS</div>
+            <div class="float-card-val">
+              <span class="status-dot"></span>
+              Generating...
+            </div>
+          </div>
+          <div class="float-card float-card-2">
+            <div class="float-card-tag">QUALITY</div>
+            <div class="float-card-val">Studio HD ✦</div>
+          </div>
+
+          <div class="mockup-main">
+            <div class="mockup-header">
+              <div class="mockup-dots">
+                <div class="mockup-dot"></div>
+                <div class="mockup-dot"></div>
+                <div class="mockup-dot"></div>
+              </div>
+              <div class="mockup-title">orivox.studio</div>
+            </div>
+
+            <div class="mockup-textarea">
+              Welcome to the future of voice. ORIVOX delivers studio-quality AI narration in seconds.<span class="mockup-cursor"></span>
+            </div>
+
+            <div class="mockup-row">
+              <div class="mockup-select">
+                <div class="select-dot"></div>
+                <span>Nova — EN Female</span>
+              </div>
+              <div class="mockup-select">
+                <div class="select-dot" style="background:linear-gradient(135deg,#06b6d4,#3b82f6)"></div>
+                <span>English 🇺🇸</span>
+              </div>
+            </div>
+
+            <div class="waveform-container">
+              <div class="play-btn">
+                <svg width="14" height="16" viewBox="0 0 14 16" fill="none"><path d="M1 1L13 8L1 15V1Z" fill="white"/></svg>
+              </div>
+              <div class="wave-bars">
+                <div class="wave-bar" style="height:60%"></div>
+                <div class="wave-bar" style="height:90%"></div>
+                <div class="wave-bar" style="height:40%"></div>
+                <div class="wave-bar" style="height:80%"></div>
+                <div class="wave-bar" style="height:100%"></div>
+                <div class="wave-bar" style="height:65%"></div>
+                <div class="wave-bar" style="height:75%"></div>
+                <div class="wave-bar" style="height:50%"></div>
+                <div class="wave-bar" style="height:95%"></div>
+                <div class="wave-bar" style="height:55%"></div>
+                <div class="wave-bar" style="height:85%"></div>
+                <div class="wave-bar" style="height:45%"></div>
+                <div class="wave-bar" style="height:70%"></div>
+                <div class="wave-bar" style="height:35%"></div>
+                <div class="wave-bar" style="height:90%"></div>
+                <div class="wave-bar" style="height:60%"></div>
+                <div class="wave-bar" style="height:80%"></div>
+                <div class="wave-bar" style="height:55%"></div>
+                <div class="wave-bar" style="height:40%"></div>
+                <div class="wave-bar" style="height:75%"></div>
+              </div>
+            </div>
+
+            <button class="generate-btn">⚡ Generate Voice</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PARTNERS -->
+  <section style="padding: 30px 2rem 60px;">
+    <div class="container">
+      <p style="text-align:center; font-size:0.8rem; color:var(--text-muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:1.5rem;">Trusted by creators & teams worldwide</p>
+      <div class="partners-row" style="justify-content:center;">
+        <span class="partner-logo">STREAMVOX</span>
+        <span class="partner-logo">NEXACAST</span>
+        <span class="partner-logo">PULSEAI</span>
+        <span class="partner-logo">STORYLANE</span>
+        <span class="partner-logo">ECHOFORGE</span>
+        <span class="partner-logo">VAULTMEDIA</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- WHAT ORIVOX DOES -->
+  <section>
+    <div class="container">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:center;">
+        <div class="reveal">
+          <div class="section-label">What We Do</div>
+          <h2 class="section-title">Voice AI for the <span class="gradient-text">Next Era</span></h2>
+          <p class="section-sub" style="margin-bottom:2rem;">From a single line of text to full production-ready voiceovers — ORIVOX gives you complete control over how your content sounds.</p>
+          <div style="display:flex; flex-direction:column; gap:1rem;">
+            <div style="display:flex; align-items:center; gap:1rem;">
+              <div style="width:36px; height:36px; background:rgba(139,92,246,0.15); border-radius:10px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(139,92,246,0.25); flex-shrink:0; font-size:1rem;">🎙️</div>
+              <div>
+                <div style="font-weight:600; font-size:0.95rem;">Lifelike Text to Speech</div>
+                <div style="font-size:0.85rem; color:var(--text-muted);">Neural voices indistinguishable from human narration</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:1rem;">
+              <div style="width:36px; height:36px; background:rgba(6,182,212,0.15); border-radius:10px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(6,182,212,0.25); flex-shrink:0; font-size:1rem;">🧬</div>
+              <div>
+                <div style="font-weight:600; font-size:0.95rem;">Precision Voice Cloning</div>
+                <div style="font-size:0.85rem; color:var(--text-muted);">Clone any voice with as little as 30 seconds of audio</div>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:1rem;">
+              <div style="width:36px; height:36px; background:rgba(217,70,239,0.15); border-radius:10px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(217,70,239,0.25); flex-shrink:0; font-size:1rem;">🌍</div>
+              <div>
+                <div style="font-weight:600; font-size:0.95rem;">29 Languages Supported</div>
+                <div style="font-size:0.85rem; color:var(--text-muted);">Create content for any global audience natively</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="reveal reveal-delay-2">
+          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:20px; padding:2rem; box-shadow:0 20px 80px rgba(0,0,0,0.4);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:1.25rem; align-items:center;">
+              <span style="font-size:0.8rem; color:var(--text-muted); font-family:'JetBrains Mono',monospace;">LIVE OUTPUT</span>
+              <span style="font-size:0.75rem; background:rgba(34,197,94,0.15); border:1px solid rgba(34,197,94,0.3); color:#22c55e; padding:3px 10px; border-radius:100px;">● Active</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.75rem;">
+              <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:12px; padding:1rem; display:flex; gap:0.75rem; align-items:center;">
+                <div style="width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,rgba(139,92,246,0.4),rgba(59,130,246,0.3)); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0;">👩</div>
+                <div style="flex:1;">
+                  <div style="font-size:0.85rem; font-weight:600; margin-bottom:3px;">Nova — Narrator</div>
+                  <div class="mini-wave" style="height:20px; margin:0;">
+                    <div class="mini-bar" style="animation-delay:0s;"></div>
+                    <div class="mini-bar" style="animation-delay:0.1s;"></div>
+                    <div class="mini-bar" style="animation-delay:0.2s;"></div>
+                    <div class="mini-bar" style="animation-delay:0.15s;"></div>
+                    <div class="mini-bar" style="animation-delay:0.05s;"></div>
+                    <div class="mini-bar" style="animation-delay:0.25s;"></div>
+                    <div class="mini-bar" style="animation-delay:0.1s;"></div>
+                    <div class="mini-bar" style="animation-delay:0.3s;"></div>
+                  </div>
+                </div>
+                <span style="font-size:0.75rem; color:var(--neon-cyan);">HD</span>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+                <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:10px; padding:0.875rem; text-align:center;">
+                  <div style="font-size:1.25rem; font-family:'Space Grotesk',sans-serif; font-weight:700; background:linear-gradient(135deg,var(--neon-purple),var(--neon-cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">0.8s</div>
+                  <div style="font-size:0.72rem; color:var(--text-muted); margin-top:3px;">Generation Time</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:10px; padding:0.875rem; text-align:center;">
+                  <div style="font-size:1.25rem; font-family:'Space Grotesk',sans-serif; font-weight:700; background:linear-gradient(135deg,var(--neon-magenta),var(--neon-purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">99%</div>
+                  <div style="font-size:0.72rem; color:var(--text-muted); margin-top:3px;">Naturalness Score</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section style="padding:60px 2rem 100px; background:rgba(139,92,246,0.02);">
+    <div class="container">
+      <div class="reveal" style="text-align:center; margin-bottom:1rem;">
+        <div class="section-label" style="justify-content:center;">Core Features</div>
+        <h2 class="section-title" style="max-width:500px; margin:0 auto 1rem;">Everything You Need to Create <span class="gradient-text">Perfect Voice</span></h2>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card reveal reveal-delay-1">
+          <div class="feature-icon">🎙️</div>
+          <div class="feature-title">Neural TTS Engine</div>
+          <div class="feature-desc">Generate speech with human-level naturalness, prosody, and emotional depth using our latest neural model.</div>
+        </div>
+        <div class="feature-card reveal reveal-delay-2">
+          <div class="feature-icon">🧬</div>
+          <div class="feature-title">Voice Cloning</div>
+          <div class="feature-desc">Clone any voice from 30 seconds of reference audio. Preserve accent, tone, and unique vocal identity.</div>
+        </div>
+        <div class="feature-card reveal reveal-delay-3">
+          <div class="feature-icon">🌍</div>
+          <div class="feature-title">Multilingual Support</div>
+          <div class="feature-desc">Speak natively in 29 languages with region-specific accents and dialect awareness built in.</div>
+        </div>
+        <div class="feature-card reveal reveal-delay-1">
+          <div class="feature-icon">🎭</div>
+          <div class="feature-title">Emotion & Style Control</div>
+          <div class="feature-desc">Fine-tune happiness, sadness, anger, excitement, or whispering. Set the exact emotional tone for every line.</div>
+        </div>
+        <div class="feature-card reveal reveal-delay-2">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-title">Real-Time Generation</div>
+          <div class="feature-desc">Generate full paragraphs of voice in under a second with our high-throughput streaming engine.</div>
+        </div>
+        <div class="feature-card reveal reveal-delay-3">
+          <div class="feature-icon">🔌</div>
+          <div class="feature-title">API & Integrations</div>
+          <div class="feature-desc">Build voice into any product with our REST API and SDKs. Webhooks, streams, and bulk processing included.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POPULAR VOICES -->
+  <section>
+    <div class="container">
+      <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:2.5rem;">
+        <div class="reveal">
+          <div class="section-label">Voice Library</div>
+          <h2 class="section-title" style="margin:0.5rem 0 0;">Popular Voices</h2>
+        </div>
+        <button class="btn-ghost reveal" onclick="navigateTo('voices')">View All 120+ →</button>
+      </div>
+
+      <div class="voices-grid">
+        <div class="voice-card reveal">
+          <div class="voice-avatar">👩‍💼</div>
+          <div class="voice-name">Nova</div>
+          <div class="voice-meta">EN · Female · Professional</div>
+          <div class="mini-wave">
+            <div class="mini-bar" style="animation-delay:0s;"></div>
+            <div class="mini-bar" style="animation-delay:0.15s;"></div>
+            <div class="mini-bar" style="animation-delay:0.3s;"></div>
+            <div class="mini-bar" style="animation-delay:0.1s;"></div>
+            <div class="mini-bar" style="animation-delay:0.25s;"></div>
+            <div class="mini-bar" style="animation-delay:0.05s;"></div>
+            <div class="mini-bar" style="animation-delay:0.2s;"></div>
+          </div>
+          <div class="voice-tags">
+            <span class="voice-tag">Narration</span>
+            <span class="voice-tag">Corporate</span>
+          </div>
+        </div>
+        <div class="voice-card reveal reveal-delay-1">
+          <div class="voice-avatar">🧔</div>
+          <div class="voice-name">Atlas</div>
+          <div class="voice-meta">EN · Male · Deep</div>
+          <div class="mini-wave">
+            <div class="mini-bar" style="animation-delay:0.1s;"></div>
+            <div class="mini-bar" style="animation-delay:0.2s;"></div>
+            <div class="mini-bar" style="animation-delay:0s;"></div>
+            <div class="mini-bar" style="animation-delay:0.3s;"></div>
+            <div class="mini-bar" style="animation-delay:0.15s;"></div>
+            <div class="mini-bar" style="animation-delay:0.25s;"></div>
+            <div class="mini-bar" style="animation-delay:0.05s;"></div>
+          </div>
+          <div class="voice-tags">
+            <span class="voice-tag">Cinematic</span>
+            <span class="voice-tag">Podcast</span>
+          </div>
+        </div>
+        <div class="voice-card reveal reveal-delay-2">
+          <div class="voice-avatar">👩‍🎨</div>
+          <div class="voice-name">Lyra</div>
+          <div class="voice-meta">FR · Female · Warm</div>
+          <div class="mini-wave">
+            <div class="mini-bar" style="animation-delay:0.2s;"></div>
+            <div class="mini-bar" style="animation-delay:0.05s;"></div>
+            <div class="mini-bar" style="animation-delay:0.25s;"></div>
+            <div class="mini-bar" style="animation-delay:0.1s;"></div>
+            <div class="mini-bar" style="animation-delay:0s;"></div>
+            <div class="mini-bar" style="animation-delay:0.3s;"></div>
+            <div class="mini-bar" style="animation-delay:0.15s;"></div>
+          </div>
+          <div class="voice-tags">
+            <span class="voice-tag">Audiobook</span>
+          </div>
+        </div>
+        <div class="voice-card reveal reveal-delay-3">
+          <div class="voice-avatar">🧑‍💻</div>
+          <div class="voice-name">Orion</div>
+          <div class="voice-meta">DE · Male · Technical</div>
+          <div class="mini-wave">
+            <div class="mini-bar" style="animation-delay:0.05s;"></div>
+            <div class="mini-bar" style="animation-delay:0.2s;"></div>
+            <div class="mini-bar" style="animation-delay:0.1s;"></div>
+            <div class="mini-bar" style="animation-delay:0s;"></div>
+            <div class="mini-bar" style="animation-delay:0.25s;"></div>
+            <div class="mini-bar" style="animation-delay:0.15s;"></div>
+            <div class="mini-bar" style="animation-delay:0.3s;"></div>
+          </div>
+          <div class="voice-tags">
+            <span class="voice-tag">E-learning</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- USE CASES PREVIEW -->
+  <section style="background:rgba(6,182,212,0.015);">
+    <div class="container">
+      <div class="reveal" style="text-align:center; margin-bottom:3rem;">
+        <div class="section-label" style="justify-content:center;">Use Cases</div>
+        <h2 class="section-title">Voice for Every <span class="gradient-text-2">Creative Need</span></h2>
+        <p class="section-sub" style="margin:1rem auto 0; text-align:center;">Whatever you create, ORIVOX delivers the perfect voice for it.</p>
+      </div>
+
+      <div class="usecase-grid">
+        <div class="usecase-card reveal">
+          <div class="usecase-icon">🎬</div>
+          <div>
+            <div class="usecase-title">YouTube & Creators</div>
+            <div class="usecase-desc">Generate professional voiceovers for videos, shorts, and explainers in minutes — no recording booth needed.</div>
+          </div>
+        </div>
+        <div class="usecase-card reveal reveal-delay-1">
+          <div class="usecase-icon">📚</div>
+          <div>
+            <div class="usecase-title">Audiobooks & Stories</div>
+            <div class="usecase-desc">Convert manuscripts into fully narrated audiobooks with expressive, character-driven voices.</div>
+          </div>
+        </div>
+        <div class="usecase-card reveal reveal-delay-2">
+          <div class="usecase-icon">📢</div>
+          <div>
+            <div class="usecase-title">Marketing & Ads</div>
+            <div class="usecase-desc">Create persuasive, on-brand voice ads and product demos that convert at scale.</div>
+          </div>
+        </div>
+        <div class="usecase-card reveal reveal-delay-3">
+          <div class="usecase-icon">🎮</div>
+          <div>
+            <div class="usecase-title">Games & Characters</div>
+            <div class="usecase-desc">Voice every character in your game with unique, responsive AI voices — across any language.</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-top:2.5rem;">
+        <button class="btn-ghost reveal" onclick="navigateTo('usecases')">Explore All Use Cases →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section>
+    <div class="container">
+      <div class="reveal" style="text-align:center; margin-bottom:3rem;">
+        <div class="section-label" style="justify-content:center;">Social Proof</div>
+        <h2 class="section-title">Loved by <span class="gradient-text">Creators</span></h2>
+      </div>
+
+      <div class="testimonials-grid">
+        <div class="testimonial-card reveal">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"ORIVOX changed how I produce YouTube content. I used to spend hours recording — now I generate perfect narrations in seconds."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">JS</div>
+            <div>
+              <div class="author-name">Jordan Smith</div>
+              <div class="author-role">YouTube Creator · 1.2M Subs</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card reveal reveal-delay-1">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"The voice cloning feature is genuinely scary good. Clients can't tell the difference. This is the real deal."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">MR</div>
+            <div>
+              <div class="author-name">Maya Rivera</div>
+              <div class="author-role">Podcast Producer</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card reveal reveal-delay-2">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-text">"We integrated ORIVOX API into our app in one afternoon. The quality and latency are unmatched for our use case."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">AK</div>
+            <div>
+              <div class="author-name">Alex Kim</div>
+              <div class="author-role">CTO, VoiceFlow App</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING PREVIEW -->
+  <section style="background:rgba(139,92,246,0.02);">
+    <div class="container">
+      <div class="reveal" style="text-align:center; margin-bottom:1rem;">
+        <div class="section-label" style="justify-content:center;">Pricing</div>
+        <h2 class="section-title">Simple, Transparent <span class="gradient-text">Pricing</span></h2>
+        <p class="section-sub" style="text-align:center; margin:1rem auto 3rem;">Start free. Scale as you grow. Cancel anytime.</p>
+      </div>
+
+      <div class="pricing-grid">
+        <div class="pricing-card reveal">
+          <div class="pricing-plan">Starter</div>
+          <div class="pricing-price">Free<span></span></div>
+          <div class="pricing-desc">For individuals exploring voice AI</div>
+          <ul class="pricing-features">
+            <li>10,000 chars/month</li>
+            <li>30 preset voices</li>
+            <li>3 languages</li>
+            <li>MP3 export</li>
+          </ul>
+          <button class="btn-ghost" style="width:100%;">Get Started</button>
+        </div>
+        <div class="pricing-card featured reveal reveal-delay-1">
+          <div class="pricing-badge">POPULAR</div>
+          <div class="pricing-plan">Pro</div>
+          <div class="pricing-price">$29<span>/mo</span></div>
+          <div class="pricing-desc">For serious creators & freelancers</div>
+          <ul class="pricing-features">
+            <li>500,000 chars/month</li>
+            <li>80 premium voices</li>
+            <li>All 29 languages</li>
+            <li>Voice cloning (3 voices)</li>
+            <li>API access</li>
+          </ul>
+          <button class="btn-primary" style="width:100%;">Start Pro</button>
+        </div>
+        <div class="pricing-card reveal reveal-delay-2">
+          <div class="pricing-plan">Studio</div>
+          <div class="pricing-price">$79<span>/mo</span></div>
+          <div class="pricing-desc">For teams and power users</div>
+          <ul class="pricing-features">
+            <li>2M chars/month</li>
+            <li>All 120+ voices</li>
+            <li>Voice cloning (10 voices)</li>
+            <li>Team collaboration</li>
+            <li>Priority support</li>
+          </ul>
+          <button class="btn-ghost" style="width:100%;">Start Studio</button>
+        </div>
+        <div class="pricing-card reveal reveal-delay-3">
+          <div class="pricing-plan">Enterprise</div>
+          <div class="pricing-price">Custom<span></span></div>
+          <div class="pricing-desc">For large teams & products</div>
+          <ul class="pricing-features">
+            <li>Unlimited characters</li>
+            <li>Unlimited voice cloning</li>
+            <li>SLA & uptime guarantee</li>
+            <li>Dedicated support</li>
+            <li>Custom integrations</li>
+          </ul>
+          <button class="btn-ghost" style="width:100%;">Contact Sales</button>
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-top:2rem;">
+        <button class="btn-ghost reveal" onclick="navigateTo('pricing')">See Full Pricing →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENTERPRISE -->
+  <section>
+    <div class="container">
+      <div class="enterprise-banner reveal">
+        <div class="enterprise-left">
+          <h3>Built for <span class="gradient-text">Enterprise Scale</span></h3>
+          <p>Custom voice models, dedicated infrastructure, SLA guarantees, and a team that actually picks up the phone.</p>
+        </div>
+        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+          <button class="btn-primary">Talk to Sales →</button>
+          <button class="btn-ghost">View API Docs</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="cta-section">
+    <div class="cta-glow"></div>
+    <div class="container" style="position:relative; z-index:1;">
+      <div class="reveal">
+        <div class="section-label" style="justify-content:center;">Get Started</div>
+        <h2 class="cta-title">Give Your Content <span class="gradient-text">a Voice.</span></h2>
+        <p class="cta-sub">Join 50,000+ creators using ORIVOX to produce studio-quality voice content at scale. Start free today.</p>
+        <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+          <button class="btn-hero-primary">Start Creating Free →</button>
+          <button class="btn-hero-secondary" onclick="navigateTo('studio')">
+            <span class="play-icon">
+              <svg width="10" height="12" viewBox="0 0 10 12" fill="none"><path d="M1 1L9 6L1 11V1Z" fill="white"/></svg>
+            </span>
+            See the Studio
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="logo" style="cursor:default;">
+            <span class="logo-text">ORIVOX</span>
+          </div>
+          <p>Give Intelligence a Voice. The next-generation AI speech platform for creators, teams, and products.</p>
+          <div style="display:flex; gap:0.75rem; margin-top:1.25rem;">
+            <div style="width:34px; height:34px; background:var(--glass); border:1px solid var(--border); border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; font-size:0.9rem;" onmouseenter="this.style.borderColor='rgba(139,92,246,0.4)'" onmouseleave="this.style.borderColor='var(--border)'">𝕏</div>
+            <div style="width:34px; height:34px; background:var(--glass); border:1px solid var(--border); border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; font-size:0.9rem;" onmouseenter="this.style.borderColor='rgba(139,92,246,0.4)'" onmouseleave="this.style.borderColor='var(--border)'">in</div>
+            <div style="width:34px; height:34px; background:var(--glass); border:1px solid var(--border); border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s; font-size:0.9rem;" onmouseenter="this.style.borderColor='rgba(139,92,246,0.4)'" onmouseleave="this.style.borderColor='var(--border)'">🐙</div>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>Product</h4>
+          <ul>
+            <li><a onclick="navigateTo('voices')">Voices</a></li>
+            <li><a onclick="navigateTo('studio')">Studio</a></li>
+            <li><a onclick="navigateTo('pricing')">Pricing</a></li>
+            <li><a onclick="navigateTo('api')">API</a></li>
+            <li><a>Changelog</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Use Cases</h4>
+          <ul>
+            <li><a>Creators</a></li>
+            <li><a>Podcasting</a></li>
+            <li><a>Audiobooks</a></li>
+            <li><a>Marketing</a></li>
+            <li><a>Gaming</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <ul>
+            <li><a onclick="navigateTo('about')">About</a></li>
+            <li><a>Careers</a></li>
+            <li><a>Blog</a></li>
+            <li><a>Press</a></li>
+            <li><a>Partners</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a>Privacy</a></li>
+            <li><a>Terms</a></li>
+            <li><a>Cookies</a></li>
+            <li><a>Security</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span class="footer-copy">© 2025 ORIVOX. All rights reserved.</span>
+        <span class="footer-copy">Give Intelligence a Voice ✦</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ==================== PAGE: VOICES ==================== -->
+<div class="page" id="page-voices">
+
+  <section class="page-hero">
+    <div class="container">
+      <div class="hero-badge" style="display:inline-flex; margin-bottom:1.5rem;">
+        <span class="badge-dot"></span>
+        120+ Premium AI Voices
+      </div>
+      <h1 class="section-title" style="font-size:clamp(2.5rem,5vw,5rem); margin-bottom:1rem;">Find Your <span class="gradient-text">Perfect Voice</span></h1>
+      <p class="section-sub" style="text-align:center; margin:0 auto 2rem;">Browse our curated library of ultra-realistic AI voices across genres, languages, and emotions.</p>
+
+      <div class="search-bar">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/><path d="M12 12L16 16" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <input type="text" placeholder="Search voices by name, language, or style...">
+        <button class="btn-primary" style="padding:0.4rem 1rem; font-size:0.8rem; white-space:nowrap;">Search</button>
+      </div>
+
+      <div class="filter-strip">
+        <button class="filter-pill active" onclick="setFilter(this)">All Voices</button>
+        <button class="filter-pill" onclick="setFilter(this)">Narration</button>
+        <button class="filter-pill" onclick="setFilter(this)">Podcast</button>
+        <button class="filter-pill" onclick="setFilter(this)">Corporate</button>
+        <button class="filter-pill" onclick="setFilter(this)">Audiobook</button>
+        <button class="filter-pill" onclick="setFilter(this)">Social Media</button>
+        <button class="filter-pill" onclick="setFilter(this)">Character</button>
+        <button class="filter-pill" onclick="setFilter(this)">Cinematic</button>
+        <button class="filter-pill" onclick="setFilter(this)">E-Learning</button>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:0 2rem 80px;">
+    <div class="container">
+      <div class="section-label" style="margin-bottom:1.5rem;">Featured Voices</div>
+
+      <div class="voices-big-grid">
+        <div class="voice-card-big reveal">
+          <div class="vcb-top">
+            <div class="vcb-avatar">👩‍💼</div>
+            <div class="vcb-info">
+              <div class="vcb-name">Nova</div>
+              <div class="vcb-meta">English (US) · Female · Professional</div>
+            </div>
+          </div>
+          <div class="vcb-wave">
+            <div class="vcb-bar" style="animation-delay:0s; height:60%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.1s; height:85%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.05s; height:40%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.2s; height:95%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.15s; height:70%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.3s; height:50%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.1s; height:80%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.25s; height:35%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.05s; height:75%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.2s; height:90%;"></div>
+            <div class="vcb-bar" style="animation-delay:0s; height:55%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.3s; height:65%;"></div>
+          </div>
+          <div class="vcb-actions">
+            <div class="vcb-tags">
+              <span class="voice-tag">Narration</span>
+              <span class="voice-tag">Corporate</span>
+              <span class="voice-tag">Docs</span>
+            </div>
+            <button class="vcb-play">
+              <svg width="12" height="14" viewBox="0 0 12 14" fill="none"><path d="M1 1L11 7L1 13V1Z" fill="white"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="voice-card-big reveal reveal-delay-1">
+          <div class="vcb-top">
+            <div class="vcb-avatar">🧔</div>
+            <div class="vcb-info">
+              <div class="vcb-name">Atlas</div>
+              <div class="vcb-meta">English (UK) · Male · Deep</div>
+            </div>
+          </div>
+          <div class="vcb-wave">
+            <div class="vcb-bar" style="animation-delay:0.1s; height:45%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.2s; height:90%;"></div>
+            <div class="vcb-bar" style="animation-delay:0s; height:60%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.3s; height:80%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.15s; height:100%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.25s; height:55%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.05s; height:70%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.2s; height:40%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.1s; height:85%;"></div>
+            <div class="vcb-bar" style="animation-delay:0s; height:65%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.3s; height:50%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.15s; height:75%;"></div>
+          </div>
+          <div class="vcb-actions">
+            <div class="vcb-tags">
+              <span class="voice-tag">Cinematic</span>
+              <span class="voice-tag">Podcast</span>
+            </div>
+            <button class="vcb-play">
+              <svg width="12" height="14" viewBox="0 0 12 14" fill="none"><path d="M1 1L11 7L1 13V1Z" fill="white"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="voice-card-big reveal reveal-delay-2">
+          <div class="vcb-top">
+            <div class="vcb-avatar">👩‍🎨</div>
+            <div class="vcb-info">
+              <div class="vcb-name">Lyra</div>
+              <div class="vcb-meta">French · Female · Warm</div>
+            </div>
+          </div>
+          <div class="vcb-wave">
+            <div class="vcb-bar" style="animation-delay:0.2s; height:75%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.05s; height:55%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.25s; height:90%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.1s; height:40%;"></div>
+            <div class="vcb-bar" style="animation-delay:0s; height:70%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.3s; height:85%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.15s; height:50%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.2s; height:95%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.05s; height:60%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.25s; height:45%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.1s; height:80%;"></div>
+            <div class="vcb-bar" style="animation-delay:0s; height:65%;"></div>
+          </div>
+          <div class="vcb-actions">
+            <div class="vcb-tags">
+              <span class="voice-tag">Audiobook</span>
+              <span class="voice-tag">Storytelling</span>
+            </div>
+            <button class="vcb-play">
+              <svg width="12" height="14" viewBox="0 0 12 14" fill="none"><path d="M1 1L11 7L1 13V1Z" fill="white"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="voice-card-big reveal">
+          <div class="vcb-top">
+            <div class="vcb-avatar">🧑‍💻</div>
+            <div class="vcb-info">
+              <div class="vcb-name">Orion</div>
+              <div class="vcb-meta">German · Male · Technical</div>
+            </div>
+          </div>
+          <div class="vcb-wave">
+            <div class="vcb-bar" style="animation-delay:0.05s; height:65%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.2s; height:45%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.1s; height:85%;"></div>
+            <div class="vcb-bar" style="animation-delay:0s; height:55%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.25s; height:75%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.15s; height:100%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.3s; height:40%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.05s; height:90%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.2s; height:60%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.1s; height:70%;"></div>
+            <div class="vcb-bar" style="animation-delay:0s; height:50%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.25s; height:80%;"></div>
+          </div>
+          <div class="vcb-actions">
+            <div class="vcb-tags">
+              <span class="voice-tag">E-learning</span>
+              <span class="voice-tag">Technical</span>
+            </div>
+            <button class="vcb-play">
+              <svg width="12" height="14" viewBox="0 0 12 14" fill="none"><path d="M1 1L11 7L1 13V1Z" fill="white"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="voice-card-big reveal reveal-delay-1">
+          <div class="vcb-top">
+            <div class="vcb-avatar">🧕</div>
+            <div class="vcb-info">
+              <div class="vcb-name">Zara</div>
+              <div class="vcb-meta">Arabic · Female · Expressive</div>
+            </div>
+          </div>
+          <div class="vcb-wave">
+            <div class="vcb-bar" style="animation-delay:0.3s; height:80%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.1s; height:60%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.2s; height:95%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.05s; height:50%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.25s; height:70%;"></div>
+            <div class="vcb-bar" style="animation-delay:0s; height:40%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.15s; height:85%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.3s; height:55%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.1s; height:75%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.2s; height:45%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.05s; height:90%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.25s; height:65%;"></div>
+          </div>
+          <div class="vcb-actions">
+            <div class="vcb-tags">
+              <span class="voice-tag">Social Media</span>
+              <span class="voice-tag">Ads</span>
+            </div>
+            <button class="vcb-play">
+              <svg width="12" height="14" viewBox="0 0 12 14" fill="none"><path d="M1 1L11 7L1 13V1Z" fill="white"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="voice-card-big reveal reveal-delay-2">
+          <div class="vcb-top">
+            <div class="vcb-avatar">🧙</div>
+            <div class="vcb-info">
+              <div class="vcb-name">Phantom</div>
+              <div class="vcb-meta">English · Male · Character</div>
+            </div>
+          </div>
+          <div class="vcb-wave">
+            <div class="vcb-bar" style="animation-delay:0.15s; height:55%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.3s; height:90%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.05s; height:40%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.2s; height:75%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.1s; height:100%;"></div>
+            <div class="vcb-bar" style="animation-delay:0s; height:60%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.25s; height:80%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.15s; height:45%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.3s; height:70%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.05s; height:85%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.2s; height:50%;"></div>
+            <div class="vcb-bar" style="animation-delay:0.1s; height:65%;"></div>
+          </div>
+          <div class="vcb-actions">
+            <div class="vcb-tags">
+              <span class="voice-tag">Gaming</span>
+              <span class="voice-tag">Character</span>
+            </div>
+            <button class="vcb-play">
+              <svg width="12" height="14" viewBox="0 0 12 14" fill="none"><path d="M1 1L11 7L1 13V1Z" fill="white"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ==================== PAGE: STUDIO ==================== -->
+<div class="page" id="page-studio">
+  <section class="page-hero" style="text-align:left; padding-bottom:40px;">
+    <div class="container">
+      <div class="hero-badge" style="display:inline-flex;">
+        <span class="badge-dot"></span>
+        AI Voice Studio
+      </div>
+      <h1 class="section-title" style="font-size:clamp(2.5rem,5vw,4.5rem); margin-top:1rem;">Create Natural Speech <span class="gradient-text">in Seconds</span></h1>
+      <p class="section-sub">The most powerful voice generation interface ever built. Fine-tune every word, export studio-ready audio.</p>
+    </div>
+  </section>
+
+  <section style="padding:0 2rem 80px;">
+    <div class="container">
+      <div class="studio-layout">
+        <div class="reveal">
+          <div class="studio-mockup">
+            <div class="studio-header">
+              <div class="mockup-dots">
+                <div class="mockup-dot"></div>
+                <div class="mockup-dot"></div>
+                <div class="mockup-dot"></div>
+              </div>
+              <span class="studio-title-text">ORIVOX Studio</span>
+              <span style="font-size:0.7rem; background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.3); color:var(--neon-purple); padding:3px 8px; border-radius:6px; margin-left:auto;">Beta</span>
+            </div>
+
+            <div class="studio-textarea">
+              <span style="color:rgba(255,255,255,0.5); font-size:0.78rem; position:absolute; top:8px; right:10px; font-family:'JetBrains Mono',monospace;">0 / 5000</span>
+              Type or paste your script here. ORIVOX will transform it into lifelike speech with your chosen voice and settings.<span class="mockup-cursor"></span>
+            </div>
+
+            <div class="studio-controls">
+              <div class="control-group">
+                <div class="control-label">Voice Model</div>
+                <div class="control-select">
+                  <span>👩‍💼</span>
+                  Nova — EN Female
+                </div>
+              </div>
+              <div class="control-group">
+                <div class="control-label">Language</div>
+                <div class="control-select">
+                  <span>🇺🇸</span>
+                  English (US)
+                </div>
+              </div>
+              <div class="control-group">
+                <div class="control-label">Emotion Style</div>
+                <div class="control-select">
+                  <span>😊</span>
+                  Neutral
+                </div>
+              </div>
+              <div class="control-group">
+                <div class="control-label">Output Format</div>
+                <div class="control-select">
+                  <span>🎵</span>
+                  MP3 · 320kbps
+                </div>
+              </div>
+            </div>
+
+            <div class="slider-row">
+              <div class="slider-item">
+                <div class="slider-header">
+                  <span class="slider-name">Stability</span>
+                  <span class="slider-val">72%</span>
+                </div>
+                <div class="slider-track">
+                  <div class="slider-fill" style="width:72%"></div>
+                  <div class="slider-thumb" style="left:72%"></div>
+                </div>
+              </div>
+              <div class="slider-item">
+                <div class="slider-header">
+                  <span class="slider-name">Clarity</span>
+                  <span class="slider-val">85%</span>
+                </div>
+                <div class="slider-track">
+                  <div class="slider-fill" style="width:85%"></div>
+                  <div class="slider-thumb" style="left:85%"></div>
+                </div>
+              </div>
+              <div class="slider-item">
+                <div class="slider-header">
+                  <span class="slider-name">Speaking Pace</span>
+                  <span class="slider-val">1.0×</span>
+                </div>
+                <div class="slider-track">
+                  <div class="slider-fill" style="width:50%"></div>
+                  <div class="slider-thumb" style="left:50%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="output-player">
+              <div class="play-btn" style="width:36px; height:36px;">
+                <svg width="10" height="12" viewBox="0 0 10 12" fill="none"><path d="M1 1L9 6L1 11V1Z" fill="white"/></svg>
+              </div>
+              <div class="output-info">
+                <div class="output-name">studio_output_nova_v2.mp3</div>
+                <div class="output-meta">2:34 · 320kbps · 44.1kHz</div>
+              </div>
+              <div style="display:flex; gap:0.5rem;">
+                <button style="background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text-secondary); padding:0.3rem 0.75rem; border-radius:8px; font-size:0.78rem; cursor:pointer; font-family:'Inter',sans-serif; transition:all 0.2s;" onmouseenter="this.style.borderColor='rgba(139,92,246,0.4)'; this.style.color='white'" onmouseleave="this.style.borderColor='var(--border)'; this.style.color='var(--text-secondary)'">⬇ Export</button>
+              </div>
+            </div>
+
+            <button class="generate-btn" style="margin-top:1rem;">⚡ Generate Voice</button>
+          </div>
+        </div>
+
+        <div class="reveal reveal-delay-2">
+          <div style="padding-left:1rem;">
+            <div class="section-label">Studio Features</div>
+            <h2 class="section-title" style="margin:0.75rem 0 1.25rem;">Fine-tune <span class="gradient-text">Every Word</span></h2>
+            <p class="section-sub" style="margin-bottom:2.5rem;">Professional-grade controls give you complete mastery over how your AI voice sounds.</p>
+
+            <div style="display:flex; flex-direction:column; gap:1.5rem;">
+              <div style="display:flex; gap:1rem; align-items:flex-start;">
+                <div style="width:44px; height:44px; background:rgba(139,92,246,0.12); border:1px solid rgba(139,92,246,0.25); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0;">🎛️</div>
+                <div>
+                  <div style="font-family:'Space Grotesk',sans-serif; font-weight:600; margin-bottom:0.3rem;">Precision Sliders</div>
+                  <div style="font-size:0.875rem; color:var(--text-secondary); line-height:1.6;">Control stability, clarity, pacing, and pronunciation with granular precision sliders.</div>
+                </div>
+              </div>
+              <div style="display:flex; gap:1rem; align-items:flex-start;">
+                <div style="width:44px; height:44px; background:rgba(6,182,212,0.12); border:1px solid rgba(6,182,212,0.25); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0;">🎭</div>
+                <div>
+                  <div style="font-family:'Space Grotesk',sans-serif; font-weight:600; margin-bottom:0.3rem;">Emotion Styles</div>
+                  <div style="font-size:0.875rem; color:var(--text-secondary); line-height:1.6;">Choose from neutral, excited, sad, angry, whisper, and more. Mix emotions per sentence.</div>
+                </div>
+              </div>
+              <div style="display:flex; gap:1rem; align-items:flex-start;">
+                <div style="width:44px; height:44px; background:rgba(217,70,239,0.12); border:1px solid rgba(217,70,239,0.25); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0;">📁</div>
+                <div>
+                  <div style="font-family:'Space Grotesk',sans-serif; font-weight:600; margin-bottom:0.3rem;">Export Formats</div>
+                  <div style="font-size:0.875rem; color:var(--text-secondary); line-height:1.6;">Download as MP3, WAV, OGG, FLAC, or stream directly via our API with one click.</div>
+                </div>
+              </div>
+              <div style="display:flex; gap:1rem; align-items:flex-start;">
+                <div style="width:44px; height:44px; background:rgba(139,92,246,0.12); border:1px solid rgba(139,92,246,0.25); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0;">👥</div>
+                <div>
+                  <div style="font-family:'Space Grotesk',sans-serif; font-weight:600; margin-bottom:0.3rem;">Team Collaboration</div>
+                  <div style="font-size:0.875rem; color:var(--text-secondary); line-height:1.6;">Share projects, voice presets, and audio files with your team in real time.</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:2rem; display:flex; gap:1rem;">
+              <button class="btn-hero-primary">Open Studio →</button>
+              <button class="btn-ghost">View API Docs</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:60px 2rem 100px; background:rgba(139,92,246,0.02);">
+    <div class="container">
+      <div class="reveal" style="text-align:center; margin-bottom:3rem;">
+        <div class="section-label" style="justify-content:center;">Export & API</div>
+        <h2 class="section-title">Build with <span class="gradient-text">API Access</span></h2>
+      </div>
+      <div style="max-width:700px; margin:0 auto;">
+        <div class="code-block reveal">
+          <span class="code-comment">// Generate speech with ORIVOX API</span><br>
+          <span class="code-keyword">const</span> <span class="code-var">response</span> = <span class="code-keyword">await</span> fetch(<span class="code-string">'https://api.orivox.io/v1/tts/generate'</span>, {<br>
+          &nbsp;&nbsp;method: <span class="code-string">'POST'</span>,<br>
+          &nbsp;&nbsp;headers: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">'Authorization'</span>: <span class="code-string">`Bearer ${</span><span class="code-var">ORIVOX_API_KEY</span><span class="code-string">}`</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">'Content-Type'</span>: <span class="code-string">'application/json'</span><br>
+          &nbsp;&nbsp;},<br>
+          &nbsp;&nbsp;body: JSON.stringify({<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;text: <span class="code-string">"Give intelligence a voice."</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;voice_id: <span class="code-string">"nova-en-female-pro"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;language: <span class="code-string">"en-US"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;stability: <span class="code-var">0.72</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;clarity: <span class="code-var">0.85</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;output_format: <span class="code-string">"mp3"</span><br>
+          &nbsp;&nbsp;})<br>
+          });<br><br>
+          <span class="code-keyword">const</span> <span class="code-var">audioBlob</span> = <span class="code-keyword">await</span> response.<span class="code-func">blob</span>();
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ==================== PAGE: USE CASES ==================== -->
+<div class="page" id="page-usecases">
+  <section class="page-hero">
+    <div class="container">
+      <div class="hero-badge" style="display:inline-flex; margin-bottom:1.5rem;">
+        <span class="badge-dot"></span>
+        Endless Applications
+      </div>
+      <h1 class="section-title" style="font-size:clamp(2.5rem,5vw,5rem); margin-bottom:1rem;">Voice for <span class="gradient-text-2">Every Creator</span></h1>
+      <p class="section-sub" style="text-align:center; margin:0 auto;">Whatever you're building or creating, ORIVOX delivers the perfect voice experience.</p>
+    </div>
+  </section>
+
+  <section style="padding:20px 2rem 100px;">
+    <div class="container">
+      <div style="display:flex; flex-direction:column; gap:2rem;">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem; align-items:center; background:var(--bg-card); border:1px solid var(--border); border-radius:24px; padding:3rem; overflow:hidden; position:relative;" class="reveal">
+          <div>
+            <div style="font-size:2.5rem; margin-bottom:1rem;">🎬</div>
+            <div class="section-label" style="font-size:0.7rem;">CONTENT CREATORS</div>
+            <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.75rem; font-weight:700; margin:0.75rem 0; letter-spacing:-0.03em;">YouTube & Video <span class="gradient-text">Narration</span></h3>
+            <p style="font-size:0.95rem; color:var(--text-secondary); line-height:1.7; margin-bottom:1.5rem;">Generate professional voiceovers for every video in minutes. No mic, no studio, no problem. Scale your content output without scaling your recording time.</p>
+            <button class="btn-primary">Start Creating →</button>
+          </div>
+          <div style="background:rgba(139,92,246,0.06); border:1px solid rgba(139,92,246,0.15); border-radius:16px; padding:1.5rem;">
+            <div style="font-size:0.75rem; color:var(--text-muted); font-family:'JetBrains Mono',monospace; margin-bottom:1rem;">STUDIO OUTPUT PREVIEW</div>
+            <div class="waveform-container" style="margin-bottom:0;">
+              <div class="play-btn">
+                <svg width="12" height="14" viewBox="0 0 12 14" fill="none"><path d="M1 1L11 7L1 13V1Z" fill="white"/></svg>
+              </div>
+              <div class="wave-bars">
+                <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+                <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem;">
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:24px; padding:2.5rem; transition:all 0.35s;" class="reveal" onmouseenter="this.style.borderColor='rgba(139,92,246,0.3)'; this.style.transform='translateY(-4px)'" onmouseleave="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'">
+            <div style="font-size:2.5rem; margin-bottom:1.25rem;">📚</div>
+            <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.4rem; font-weight:700; margin-bottom:0.75rem; letter-spacing:-0.02em;">Audiobooks & Storytelling</h3>
+            <p style="font-size:0.9rem; color:var(--text-secondary); line-height:1.7; margin-bottom:1.5rem;">Convert any manuscript into a fully narrated audiobook. Use different character voices, emotional tones, and pacing for cinematic storytelling.</p>
+            <button class="btn-ghost">Explore →</button>
+          </div>
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:24px; padding:2.5rem; transition:all 0.35s;" class="reveal reveal-delay-1" onmouseenter="this.style.borderColor='rgba(6,182,212,0.3)'; this.style.transform='translateY(-4px)'" onmouseleave="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'">
+            <div style="font-size:2.5rem; margin-bottom:1.25rem;">📢</div>
+            <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.4rem; font-weight:700; margin-bottom:0.75rem; letter-spacing:-0.02em;">Marketing & Ads</h3>
+            <p style="font-size:0.9rem; color:var(--text-secondary); line-height:1.7; margin-bottom:1.5rem;">Create high-converting voice ads and product demos in any language. Test multiple voice personas against your audience at zero cost.</p>
+            <button class="btn-ghost">Explore →</button>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:1.5rem;">
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:20px; padding:2rem; transition:all 0.35s;" class="reveal" onmouseenter="this.style.borderColor='rgba(217,70,239,0.3)'" onmouseleave="this.style.borderColor='var(--border)'">
+            <div style="font-size:2rem; margin-bottom:1rem;">🎮</div>
+            <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.15rem; font-weight:700; margin-bottom:0.5rem;">Games & Characters</h3>
+            <p style="font-size:0.875rem; color:var(--text-secondary); line-height:1.6;">Voice every NPC and character with unique, dynamic AI voices that respond to game events.</p>
+          </div>
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:20px; padding:2rem; transition:all 0.35s;" class="reveal reveal-delay-1" onmouseenter="this.style.borderColor='rgba(139,92,246,0.3)'" onmouseleave="this.style.borderColor='var(--border)'">
+            <div style="font-size:2rem; margin-bottom:1rem;">🎓</div>
+            <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.15rem; font-weight:700; margin-bottom:0.5rem;">Education & E-Learning</h3>
+            <p style="font-size:0.875rem; color:var(--text-secondary); line-height:1.6;">Create engaging course narrations and lessons in any language with warm, clear voices.</p>
+          </div>
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:20px; padding:2rem; transition:all 0.35s;" class="reveal reveal-delay-2" onmouseenter="this.style.borderColor='rgba(6,182,212,0.3)'" onmouseleave="this.style.borderColor='var(--border)'">
+            <div style="font-size:2rem; margin-bottom:1rem;">🤖</div>
+            <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.15rem; font-weight:700; margin-bottom:0.5rem;">Apps & AI Assistants</h3>
+            <p style="font-size:0.875rem; color:var(--text-secondary); line-height:1.6;">Power your voice interface, chatbot, or AI assistant with natural, branded speech.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ==================== PAGE: PRICING ==================== -->
+<div class="page" id="page-pricing">
+  <section class="page-hero">
+    <div class="container">
+      <div class="hero-badge" style="display:inline-flex; margin-bottom:1.5rem;">
+        <span class="badge-dot"></span>
+        Simple, Honest Pricing
+      </div>
+      <h1 class="section-title" style="font-size:clamp(2.5rem,5vw,5rem); margin-bottom:1rem;">Start Free. <span class="gradient-text">Scale Fearlessly.</span></h1>
+      <p class="section-sub" style="text-align:center; margin:0 auto;">No hidden fees. No usage surprises. Cancel or upgrade anytime.</p>
+
+      <div class="toggle-row">
+        <span class="toggle-label">Monthly</span>
+        <div class="toggle-switch" id="billingToggle" onclick="toggleBilling()">
+          <div class="toggle-knob" id="toggleKnob"></div>
+        </div>
+        <span class="toggle-label">Annual</span>
+        <span class="save-badge">Save 30%</span>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:20px 2rem 80px;">
+    <div class="container">
+      <div class="pricing-grid">
+        <div class="pricing-card reveal">
+          <div class="pricing-plan">Starter</div>
+          <div class="pricing-price">Free</div>
+          <div class="pricing-desc">Perfect for exploring AI voice generation</div>
+          <ul class="pricing-features">
+            <li>10,000 characters / month</li>
+            <li>30 preset voices</li>
+            <li>3 languages</li>
+            <li>MP3 export only</li>
+            <li>Community support</li>
+          </ul>
+          <button class="btn-ghost" style="width:100%;">Get Started Free</button>
+        </div>
+
+        <div class="pricing-card featured reveal reveal-delay-1">
+          <div class="pricing-badge">MOST POPULAR</div>
+          <div class="pricing-plan">Pro</div>
+          <div class="pricing-price">$29<span>/mo</span></div>
+          <div class="pricing-desc">For serious creators and freelancers</div>
+          <ul class="pricing-features">
+            <li>500,000 chars / month</li>
+            <li>80 premium voices</li>
+            <li>All 29 languages</li>
+            <li>Voice cloning (3 voices)</li>
+            <li>MP3, WAV, OGG export</li>
+            <li>API access (10k req/mo)</li>
+            <li>Email support</li>
+          </ul>
+          <button class="btn-primary" style="width:100%;">Start Pro Trial</button>
+        </div>
+
+        <div class="pricing-card reveal reveal-delay-2">
+          <div class="pricing-plan">Studio</div>
+          <div class="pricing-price">$79<span>/mo</span></div>
+          <div class="pricing-desc">For teams and power users</div>
+          <ul class="pricing-features">
+            <li>2M chars / month</li>
+            <li>All 120+ voices</li>
+            <li>Voice cloning (10 voices)</li>
+            <li>Team collaboration (5 seats)</li>
+            <li>All export formats + FLAC</li>
+            <li>API access (100k req/mo)</li>
+            <li>Priority support</li>
+          </ul>
+          <button class="btn-ghost" style="width:100%;">Start Studio</button>
+        </div>
+
+        <div class="pricing-card reveal reveal-delay-3">
+          <div class="pricing-plan">Enterprise</div>
+          <div class="pricing-price" style="font-size:2rem;">Custom</div>
+          <div class="pricing-desc">Tailored for large teams and products</div>
+          <ul class="pricing-features">
+            <li>Unlimited characters</li>
+            <li>Unlimited voice cloning</li>
+            <li>Unlimited team seats</li>
+            <li>Dedicated infrastructure</li>
+            <li>99.99% SLA uptime</li>
+            <li>Custom integrations</li>
+            <li>Dedicated CSM</li>
+          </ul>
+          <button class="btn-ghost" style="width:100%;">Contact Sales</button>
+        </div>
+      </div>
+
+      <!-- COMPARISON TABLE -->
+      <div style="margin-top:5rem;" class="reveal">
+        <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.5rem; font-weight:700; margin-bottom:2rem; text-align:center;">Feature Comparison</h3>
+        <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:20px; overflow:hidden;">
+          <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border);">
+                <th style="padding:1rem 1.5rem; text-align:left; color:var(--text-muted); font-weight:500;">Feature</th>
+                <th style="padding:1rem; text-align:center; color:var(--text-secondary);">Starter</th>
+                <th style="padding:1rem; text-align:center; color:var(--neon-purple);">Pro</th>
+                <th style="padding:1rem; text-align:center; color:var(--text-secondary);">Studio</th>
+                <th style="padding:1rem; text-align:center; color:var(--text-secondary);">Enterprise</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                <td style="padding:0.875rem 1.5rem; color:var(--text-secondary);">Voice Cloning</td>
+                <td style="padding:0.875rem; text-align:center; color:var(--text-muted);">—</td>
+                <td style="padding:0.875rem; text-align:center; color:#22c55e;">3 voices</td>
+                <td style="padding:0.875rem; text-align:center; color:#22c55e;">10 voices</td>
+                <td style="padding:0.875rem; text-align:center; color:#22c55e;">Unlimited</td>
+              </tr>
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                <td style="padding:0.875rem 1.5rem; color:var(--text-secondary);">API Access</td>
+                <td style="padding:0.875rem; text-align:center; color:var(--text-muted);">—</td>
+                <td style="padding:0.875rem; text-align:center; color:#22c55e;">✓</td>
+                <td style="padding:0.875rem; text-align:center; color:#22c55e;">✓</td>
+                <td style="padding:0.875rem; text-align:center; color:#22c55e;">✓</td>
+              </tr>
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                <td style="padding:0.875rem 1.5rem; color:var(--text-secondary);">Team Collaboration</td>
+                <td style="padding:0.875rem; text-align:center; color:var(--text-muted);">—</td>
+                <td style="padding:0.875rem; text-align:center; color:var(--text-muted);">—</td>
+                <td style="padding:0.875rem; text-align:center; color:#22c55e;">5 seats</td>
+                <td style="padding:0.875rem; text-align:center; color:#22c55e;">Unlimited</td>
+              </tr>
+              <tr>
+                <td style="padding:0.875rem 1.5rem; color:var(--text-secondary);">SLA Uptime</td>
+                <td style="padding:0.875rem; text-align:center; color:var(--text-muted);">—</td>
+                <td style="padding:0.875rem; text-align:center; color:var(--text-muted);">—</td>
+                <td style="padding:0.875rem; text-align:center; color:var(--text-muted);">—</td>
+                <td style="padding:0.875rem; text-align:center; color:#22c55e;">99.99%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ==================== PAGE: ABOUT ==================== -->
+<div class="page" id="page-about">
+  <section class="about-hero">
+    <div class="container">
+      <div class="hero-badge" style="display:inline-flex; margin-bottom:1.5rem;">
+        <span class="badge-dot"></span>
+        Our Mission
+      </div>
+      <h1 class="section-title" style="font-size:clamp(2.5rem,5vw,5rem); margin-bottom:1.25rem; max-width:700px; margin-left:auto; margin-right:auto;">We're Building the <span class="gradient-text">Voice Layer</span> of the Future</h1>
+      <p class="section-sub" style="text-align:center; margin:0 auto; max-width:600px; font-size:1.1rem;">ORIVOX exists to democratize voice — making professional-grade AI speech available to every creator, developer, and business on the planet.</p>
+    </div>
+  </section>
+
+  <section style="padding:0 2rem 80px;">
+    <div class="container">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:center; margin-bottom:5rem;">
+        <div class="reveal">
+          <div class="section-label">Why Voice Matters</div>
+          <h2 class="section-title" style="margin:0.75rem 0 1.25rem;">Sound is the <span class="gradient-text">Next Interface</span></h2>
+          <p style="font-size:1rem; color:var(--text-secondary); line-height:1.8; margin-bottom:1rem;">For millions of years, humans communicated through voice. It carries emotion, nuance, trust, and identity in a way that text simply cannot.</p>
+          <p style="font-size:1rem; color:var(--text-secondary); line-height:1.8;">We believe AI voice technology will fundamentally transform how humans interact with machines, content, and each other. ORIVOX is at the forefront of that transformation.</p>
+        </div>
+        <div class="reveal reveal-delay-2">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div style="background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.2); border-radius:16px; padding:1.75rem; text-align:center;">
+              <div style="font-family:'Space Grotesk',sans-serif; font-size:2.5rem; font-weight:700; background:linear-gradient(135deg,var(--neon-purple),var(--neon-cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">2023</div>
+              <div style="font-size:0.85rem; color:var(--text-muted); margin-top:5px;">Founded</div>
+            </div>
+            <div style="background:rgba(6,182,212,0.08); border:1px solid rgba(6,182,212,0.2); border-radius:16px; padding:1.75rem; text-align:center;">
+              <div style="font-family:'Space Grotesk',sans-serif; font-size:2.5rem; font-weight:700; background:linear-gradient(135deg,var(--neon-cyan),var(--neon-blue)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">50K+</div>
+              <div style="font-size:0.85rem; color:var(--text-muted); margin-top:5px;">Active Users</div>
+            </div>
+            <div style="background:rgba(217,70,239,0.08); border:1px solid rgba(217,70,239,0.2); border-radius:16px; padding:1.75rem; text-align:center;">
+              <div style="font-family:'Space Grotesk',sans-serif; font-size:2.5rem; font-weight:700; background:linear-gradient(135deg,var(--neon-magenta),var(--neon-purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">29</div>
+              <div style="font-size:0.85rem; color:var(--text-muted); margin-top:5px;">Languages</div>
+            </div>
+            <div style="background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.2); border-radius:16px; padding:1.75rem; text-align:center;">
+              <div style="font-family:'Space Grotesk',sans-serif; font-size:2.5rem; font-weight:700; background:linear-gradient(135deg,var(--neon-indigo),var(--neon-cyan)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">1B+</div>
+              <div style="font-size:0.85rem; color:var(--text-muted); margin-top:5px;">Words Generated</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label reveal">Our Values</div>
+      <h2 class="section-title reveal" style="margin:0.75rem 0 2.5rem;">What Drives <span class="gradient-text">Everything</span> We Build</h2>
+
+      <div class="values-grid">
+        <div class="value-card reveal">
+          <div style="font-size:2rem; margin-bottom:1rem;">🎯</div>
+          <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.1rem; font-weight:700; margin-bottom:0.5rem;">Radical Authenticity</h3>
+          <p style="font-size:0.875rem; color:var(--text-secondary); line-height:1.7;">We build voice AI that sounds genuinely human. No artificial, robotic shortcuts. Real neural quality in every output.</p>
+        </div>
+        <div class="value-card reveal reveal-delay-1">
+          <div style="font-size:2rem; margin-bottom:1rem;">🌍</div>
+          <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.1rem; font-weight:700; margin-bottom:0.5rem;">Global by Design</h3>
+          <p style="font-size:0.875rem; color:var(--text-secondary); line-height:1.7;">Language shouldn't be a barrier. ORIVOX is built to serve creators in every corner of the world with native-quality voice.</p>
+        </div>
+        <div class="value-card reveal reveal-delay-2">
+          <div style="font-size:2rem; margin-bottom:1rem;">🔒</div>
+          <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.1rem; font-weight:700; margin-bottom:0.5rem;">Ethical AI First</h3>
+          <p style="font-size:0.875rem; color:var(--text-secondary); line-height:1.7;">Voice cloning comes with responsibility. We have strict consent protocols, audit trails, and ethical use policies baked into the platform.</p>
+        </div>
+      </div>
+
+      <div class="enterprise-banner reveal" style="margin-top:4rem;">
+        <div class="enterprise-left">
+          <h3>Want to <span class="gradient-text">Work Together?</span></h3>
+          <p>We're always open to partnerships, collaborations, and enterprise conversations.</p>
+        </div>
+        <div style="display:flex; gap:1rem;">
+          <button class="btn-primary">Contact Us →</button>
+          <button class="btn-ghost">View Careers</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ==================== PAGE: API ==================== -->
+<div class="page" id="page-api">
+  <section class="page-hero" style="text-align:left; padding-bottom:40px;">
+    <div class="container">
+      <div class="hero-badge" style="display:inline-flex;">
+        <span class="badge-dot"></span>
+        Developer Platform
+      </div>
+      <h1 class="section-title" style="font-size:clamp(2.5rem,5vw,4.5rem); margin-top:1rem;">Build Voice Into <span class="gradient-text">Anything</span></h1>
+      <p class="section-sub" style="margin-bottom:2rem;">A simple, powerful REST API to integrate world-class AI voice generation into any product, app, or workflow.</p>
+      <div style="display:flex; gap:1rem;">
+        <button class="btn-hero-primary">Get API Key →</button>
+        <button class="btn-hero-secondary">
+          <span class="play-icon"><svg width="10" height="12" viewBox="0 0 10 12" fill="none"><path d="M1 1L9 6L1 11V1Z" fill="white"/></svg></span>
+          Read Docs
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding:20px 2rem 80px;">
+    <div class="container">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:start; margin-bottom:5rem;">
+        <div class="reveal">
+          <div class="section-label">API Overview</div>
+          <h2 class="section-title" style="margin:0.75rem 0 1rem; font-size:2rem;">Simple to Integrate. <span class="gradient-text">Powerful to Scale.</span></h2>
+          <p style="font-size:0.95rem; color:var(--text-secondary); line-height:1.7; margin-bottom:2rem;">Our REST API follows industry-standard conventions. Full SDKs available for Python, JavaScript, Go, and more. Generate audio in milliseconds.</p>
+
+          <div style="display:flex; flex-direction:column; gap:1rem;">
+            <div style="display:flex; gap:0.875rem; align-items:center; padding:1rem; background:var(--bg-card); border:1px solid var(--border); border-radius:12px;">
+              <div style="width:40px; height:40px; background:rgba(139,92,246,0.15); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0;">⚡</div>
+              <div>
+                <div style="font-weight:600; font-size:0.875rem;">Sub-second generation</div>
+                <div style="font-size:0.8rem; color:var(--text-muted);">Average p50 latency of 800ms for 500 chars</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:0.875rem; align-items:center; padding:1rem; background:var(--bg-card); border:1px solid var(--border); border-radius:12px;">
+              <div style="width:40px; height:40px; background:rgba(6,182,212,0.15); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0;">📡</div>
+              <div>
+                <div style="font-weight:600; font-size:0.875rem;">Streaming Audio</div>
+                <div style="font-size:0.8rem; color:var(--text-muted);">Stream audio chunks in real-time as speech generates</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:0.875rem; align-items:center; padding:1rem; background:var(--bg-card); border:1px solid var(--border); border-radius:12px;">
+              <div style="width:40px; height:40px; background:rgba(217,70,239,0.15); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0;">🔐</div>
+              <div>
+                <div style="font-weight:600; font-size:0.875rem;">Enterprise Security</div>
+                <div style="font-size:0.8rem; color:var(--text-muted);">SOC 2 compliant. TLS 1.3. API key rotation built-in</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal reveal-delay-2">
+          <div class="code-block">
+            <span class="code-comment"># Python SDK Example</span><br>
+            <span class="code-keyword">from</span> orivox <span class="code-keyword">import</span> OrivoxClient<br><br>
+            <span class="code-var">client</span> = OrivoxClient(api_key=<span class="code-string">"or_live_xxxx"</span>)<br><br>
+            <span class="code-var">audio</span> = client.tts.<span class="code-func">generate</span>(<br>
+            &nbsp;&nbsp;text=<span class="code-string">"Give intelligence a voice."</span>,<br>
+            &nbsp;&nbsp;voice_id=<span class="code-string">"nova-en-female"</span>,<br>
+            &nbsp;&nbsp;language=<span class="code-string">"en-US"</span>,<br>
+            &nbsp;&nbsp;emotion=<span class="code-string">"confident"</span>,<br>
+            &nbsp;&nbsp;settings={<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"stability"</span>: <span class="code-var">0.72</span>,<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"clarity"</span>: <span class="code-var">0.85</span>,<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"speed"</span>: <span class="code-var">1.0</span><br>
+            &nbsp;&nbsp;}<br>
+            )<br><br>
+            audio.<span class="code-func">save</span>(<span class="code-string">"output.mp3"</span>)<br>
+            <span class="code-comment"># ✓ Generated in 0.82s</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTEGRATION CARDS -->
+      <div class="section-label reveal" style="margin-bottom:1.5rem;">Integrations</div>
+      <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:1rem; margin-bottom:4rem;">
+        <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:1.5rem; text-align:center; transition:all 0.3s;" class="reveal" onmouseenter="this.style.borderColor='rgba(139,92,246,0.3)'; this.style.transform='translateY(-4px)'" onmouseleave="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'">
+          <div style="font-size:2rem; margin-bottom:0.75rem;">🐍</div>
+          <div style="font-weight:600; font-size:0.9rem; margin-bottom:0.3rem;">Python</div>
+          <div style="font-size:0.78rem; color:var(--text-muted);">pip install orivox</div>
+        </div>
+        <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:1.5rem; text-align:center; transition:all 0.3s;" class="reveal reveal-delay-1" onmouseenter="this.style.borderColor='rgba(139,92,246,0.3)'; this.style.transform='translateY(-4px)'" onmouseleave="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'">
+          <div style="font-size:2rem; margin-bottom:0.75rem;">🟨</div>
+          <div style="font-weight:600; font-size:0.9rem; margin-bottom:0.3rem;">JavaScript</div>
+          <div style="font-size:0.78rem; color:var(--text-muted);">npm install orivox</div>
+        </div>
+        <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:1.5rem; text-align:center; transition:all 0.3s;" class="reveal reveal-delay-2" onmouseenter="this.style.borderColor='rgba(139,92,246,0.3)'; this.style.transform='translateY(-4px)'" onmouseleave="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'">
+          <div style="font-size:2rem; margin-bottom:0.75rem;">🦫</div>
+          <div style="font-weight:600; font-size:0.9rem; margin-bottom:0.3rem;">Go</div>
+          <div style="font-size:0.78rem; color:var(--text-muted);">go get orivox</div>
+        </div>
+        <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:1.5rem; text-align:center; transition:all 0.3s;" class="reveal reveal-delay-3" onmouseenter="this.style.borderColor='rgba(139,92,246,0.3)'; this.style.transform='translateY(-4px)'" onmouseleave="this.style.borderColor='var(--border)'; this.style.transform='translateY(0)'">
+          <div style="font-size:2rem; margin-bottom:0.75rem;">🔗</div>
+          <div style="font-weight:600; font-size:0.9rem; margin-bottom:0.3rem;">REST API</div>
+          <div style="font-size:0.78rem; color:var(--text-muted);">Any language</div>
+        </div>
+      </div>
+
+      <!-- ENTERPRISE CTA -->
+      <div class="enterprise-banner reveal">
+        <div class="enterprise-left">
+          <h3>Need <span class="gradient-text">Enterprise Scale?</span></h3>
+          <p>Dedicated infrastructure, SLA guarantees, and white-glove onboarding for high-volume API users.</p>
+        </div>
+        <div style="display:flex; gap:1rem;">
+          <button class="btn-primary">Talk to Sales →</button>
+          <button class="btn-ghost">API Docs</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  // ==================== CURSOR ====================
+  const cursor = document.getElementById('cursor');
+  const cursorFollower = document.getElementById('cursorFollower');
+  let mouseX = 0, mouseY = 0;
+  let followerX = 0, followerY = 0;
+
+  document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    cursor.style.left = mouseX - 6 + 'px';
+    cursor.style.top = mouseY - 6 + 'px';
+  });
+
+  function animateCursorFollower() {
+    followerX += (mouseX - followerX - 20) * 0.15;
+    followerY += (mouseY - followerY - 20) * 0.15;
+    cursorFollower.style.left = followerX + 'px';
+    cursorFollower.style.top = followerY + 'px';
+    requestAnimationFrame(animateCursorFollower);
+  }
+  animateCursorFollower();
+
+  document.querySelectorAll('button, a, .voice-card, .feature-card, .pricing-card, .usecase-card, .filter-pill, .vcb-play').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.transform = 'scale(1.8)';
+      cursorFollower.style.transform = 'scale(1.3)';
+      cursorFollower.style.borderColor = 'rgba(139,92,246,0.8)';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.transform = 'scale(1)';
+      cursorFollower.style.transform = 'scale(1)';
+      cursorFollower.style.borderColor = 'rgba(139,92,246,0.5)';
+    });
+  });
+
+  // ==================== NAVBAR ====================
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 50) {
+      navbar.classList.add('scrolled');
+    } else {
+      navbar.classList.remove('scrolled');
+    }
+  });
+
+  // ==================== NAVIGATION ====================
+  function navigateTo(pageId) {
+    const transition = document.getElementById('pageTransition');
+    transition.classList.add('active');
+
+    setTimeout(() => {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      const target = document.getElementById('page-' + pageId);
+      if (target) {
+        target.classList.add('active');
+        window.scrollTo(0, 0);
+        initReveal();
+      }
+      transition.classList.remove('active');
+    }, 300);
+  }
+
+  // ==================== SCROLL REVEAL ====================
+  function initReveal() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    document.querySelectorAll('.page.active .reveal').forEach(el => {
+      observer.observe(el);
+    });
+  }
+
+  // Initialize on page load
+  setTimeout(initReveal, 100);
+
+  // ==================== PARALLAX ====================
+  document.addEventListener('mousemove', (e) => {
+    const x = (e.clientX / window.innerWidth - 0.5) * 20;
+    const y = (e.clientY / window.innerHeight - 0.5) * 20;
+
+    document.querySelectorAll('.bg-orb').forEach((orb, i) => {
+      const depth = (i + 1) * 0.3;
+      orb.style.transform = `translate(${x * depth}px, ${y * depth}px) scale(1)`;
+    });
+
+    const mockup = document.querySelector('.hero-mockup');
+    if (mockup) {
+      mockup.style.transform = `perspective(1000px) rotateY(${x * 0.05}deg) rotateX(${-y * 0.05}deg)`;
+    }
+  });
+
+  // ==================== BILLING TOGGLE ====================
+  let isAnnual = false;
+  function toggleBilling() {
+    isAnnual = !isAnnual;
+    const knob = document.getElementById('toggleKnob');
+    if (knob) {
+      knob.style.right = isAnnual ? '4px' : 'auto';
+      knob.style.left = isAnnual ? 'auto' : '4px';
+    }
+  }
+
+  // ==================== FILTER PILLS ====================
+  function setFilter(el) {
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // ==================== MOBILE MENU ====================
+  function toggleMobileMenu() {
+    const navLinks = document.querySelector('.nav-links');
+    const navActions = document.querySelector('.nav-actions');
+    if (navLinks) navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
+  }
+
+  // ==================== WAVE BAR RANDOMIZATION ====================
+  function randomizeWaves() {
+    document.querySelectorAll('.wave-bar').forEach(bar => {
+      const randomH = Math.random() * 70 + 30;
+      const randomDelay = Math.random() * 0.5;
+      const randomDuration = 0.8 + Math.random() * 0.8;
+      bar.style.animationDelay = randomDelay + 's';
+      bar.style.animationDuration = randomDuration + 's';
+    });
+  }
+  randomizeWaves();
+
+  // ==================== GENERATE BUTTON INTERACTION ====================
+  document.querySelectorAll('.generate-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const original = this.textContent;
+      this.textContent = '● Generating...';
+      this.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+      setTimeout(() => {
+        this.textContent = '✓ Audio Ready!';
+        setTimeout(() => {
+          this.textContent = original;
+          this.style.background = '';
+        }, 2000);
+      }, 1500);
+    });
+  });
+
+  // ==================== PLAY BUTTON INTERACTION ====================
+  document.querySelectorAll('.play-btn, .vcb-play').forEach(btn => {
+    let playing = false;
+    btn.addEventListener('click', function() {
+      playing = !playing;
+      if (playing) {
+        this.innerHTML = '<svg width="10" height="12" viewBox="0 0 10 12" fill="none"><rect x="1" y="1" width="3" height="10" fill="white" rx="1"/><rect x="6" y="1" width="3" height="10" fill="white" rx="1"/></svg>';
+        this.style.boxShadow = '0 0 40px rgba(139,92,246,0.7)';
+      } else {
+        this.innerHTML = '<svg width="12" height="14" viewBox="0 0 12 14" fill="none"><path d="M1 1L11 7L1 13V1Z" fill="white"/></svg>';
+        this.style.boxShadow = '0 0 15px rgba(139,92,246,0.3)';
+      }
+    });
+  });
+
+  // ==================== INIT ====================
+  document.addEventListener('DOMContentLoaded', () => {
+    initReveal();
+  });
+
+  // Re-run reveal when page changes
+  const origNavigate = navigateTo;
+</script>
+</body>
+</html>
+```
+    <script  src="./script.js"></script>
+
+  </body>
+  
+</html>
